@@ -9,6 +9,7 @@ public class NeedlemanMatrix {
 	private int deltaMatch;
 	private int deltaMismatch;
 	private int deltaInsertionOrDeletion;
+	private boolean printOneOptimalMatch = true;
 	ArrayList<WunschCell> optimalPath = new ArrayList<WunschCell>();
 	NeedlemanMatrix(String s, String t, int deltaMatch, int deltaMismatch, int deltaInsertionOrDeletion) {
 		// Initialize Matrix with indeces(i,j) where i represents an index in string S and J an index in String T
@@ -190,5 +191,9 @@ public class NeedlemanMatrix {
 		}
 		int score = path.get(path.size() - 1).getScore();
 		System.out.printf("%nScore: %d%n", score);
+		if (printOneOptimalMatch) {
+			System.out.printf("%n%nConfigured to only print one optimal alignment%nSet global boolean \"printOneOptimalMatch\" to false to see all optimal matches.");
+			System.exit(0);
+		}
 	}
 }
