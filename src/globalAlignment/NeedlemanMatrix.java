@@ -9,6 +9,7 @@ public class NeedlemanMatrix {
 	private int deltaMatch;
 	private int deltaMismatch;
 	private int deltaInsertionOrDeletion;
+	ArrayList<WunschCell> optimalPath = new ArrayList<WunschCell>();
 	NeedlemanMatrix(String s, String t, int deltaMatch, int deltaMismatch, int deltaInsertionOrDeletion) {
 		// Initialize Matrix with indeces(i,j) where i represents an index in string S and J an index in String T
 		// Using <= because there should be a value representing the empty string at index (0,0)
@@ -28,6 +29,7 @@ public class NeedlemanMatrix {
 		//printMatrix();
 		buildMatrix();
 		printMatrix();
+		depthFirstWunsch(matrix.get(matrix.size() - 1).get(matrix.get(0).size() - 1));
 	}
 
 	public void buildMatrix() {
@@ -62,7 +64,7 @@ public class NeedlemanMatrix {
 	private void dynamicFillMatrix(int row) {
 		for (int i = 1; i < matrix.get(row).size(); i++) {
 			int delta = 0;
-			int max = 0;
+			int max;
 			if (t.charAt(row) == s.charAt(i)) {
 				//System.out.printf("t at %d matches s at %d %c=%c delta = %d%n", row, i, t.charAt(row), s.charAt(i), deltaMatch);
 				delta = deltaMatch;
@@ -71,7 +73,6 @@ public class NeedlemanMatrix {
 			}
 			// Candidate score for this cell given a match or a mismatch
 			int matchScore = matrix.get(row - 1).get(i - 1).getScore() + delta;
-			
 			max = matchScore;
 			// Candidate score for this cell given an insertion
 			int insertionScore = matrix.get(row - 1).get(i).getScore() + deltaInsertionOrDeletion;
@@ -88,14 +89,17 @@ public class NeedlemanMatrix {
 			matrix.get(row).get(i).updateScore(max);
 			if (matchScore == max) {
 				matrix.get(row).get(i).addMatchParent(matrix.get(row - 1).get(i - 1));
+				System.out.printf("(Mis)match score for cell %d,%d = %d, adding parent%n", row, i, matchScore);
 			}
 			
 			if (insertionScore == max) {
 				matrix.get(row).get(i).addInsertionParent(matrix.get(row - 1).get(i));
+				System.out.printf("Insertion score for cell %d,%d = %d, adding parent%n", row, i, insertionScore);
 			}
 			
 			if (deletionScore == max) {
 				matrix.get(row).get(i).addDeletionParent(matrix.get(row).get(i-1));
+				System.out.printf("Deletion score for cell %d,%d = %d, adding parent%n", row, i, deletionScore);
 			}
 		}
 	}
@@ -103,15 +107,80 @@ public class NeedlemanMatrix {
 	public void printMatrix() {
 		for (int i = 0; i < matrix.size(); i++) {
 			for (int j = 0; j < matrix.get(i).size(); j++) {
-				System.out.printf("%d ", matrix.get(i).get(j).getScore());
+				String intVal =  new Integer(matrix.get(i).get(j).getScore()).toString();
+				System.out.print(intVal);
+				for (int p = 4 - intVal.length(); p > 0; p--) {
+					System.out.print(" ");
+				}
 			}
 			System.out.println();
 		}
 	}
 	
 	private void depthFirstWunsch(WunschCell w) {
-		ArrayList<WunschCell> optimalPath = new ArrayList<WunschCell>();
+		optimalPath.add(0, w);
+		if(w == matrix.get(0).get(0)) {
+			printOptimalPath(optimalPath);
+			optimalPath.remove(0);
+			return;
+		}
+		if (w.getMatch()) {
+			w.setCellInfo("Match");
+			depthFirstWunsch(w.getMatchParent());
+		}
+		if (w.getInsertion()) {
+			w.setCellInfo("Insertion");
+			depthFirstWunsch(w.getInsertionParent());
+		}
+		if (w.getDeletion()) {
+			w.setCellInfo("Deletion");
+			depthFirstWunsch(w.getDeletionParent());
+		}
+		optimalPath.remove(0);
 	}
 	
-
+	private void printOptimalPath(ArrayList<WunschCell> path) {
+		System.out.printf("%n%n-------Possible best alignment---------------%n");
+		for (int i = 1; i < optimalPath.size(); i++) {
+			System.out.printf("%s | ", path.get(i).getCellInfo());
+		}
+		int sCounter = 0;
+		System.out.printf("%nString S:  ");
+		for (int i = 1; i < path.size(); i++) {
+			switch (path.get(i).getCellInfo()) {
+			case "Match":
+			case "Deletion":
+				System.out.printf("%c ", s.charAt(sCounter));
+				sCounter++;
+				break;
+			case "Insertion":
+				System.out.printf("- ");
+				break;
+			default:
+				System.err.printf("%nCell info = %s", path.get(i).getCellInfo());
+				System.err.printf("%nSomething has gone terribly wrong, Abort, Abort");
+				System.exit(1);
+			}
+		}
+		System.out.println();
+		int tCounter = 0;
+		System.out.printf("String T:  ");
+		for (int i = 1; i < path.size(); i++) {
+			
+			switch (path.get(i).getCellInfo()) {
+			case "Match":
+			case "Insertion":
+				System.out.printf("%c ", t.charAt(tCounter));
+				tCounter++;
+				break;
+			case "Deletion":
+				System.out.printf("- ");
+				break;
+			default:
+				System.err.printf("%nCell info = %s", path.get(i).getCellInfo());
+				System.err.printf("%nSomething has gone terribly wrong, Abort, Abort");
+				System.exit(1);
+			}
+		}
+	}
 }
