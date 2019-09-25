@@ -89,23 +89,28 @@ public class NeedlemanMatrix {
 			matrix.get(row).get(i).updateScore(max);
 			if (matchScore == max) {
 				matrix.get(row).get(i).addMatchParent(matrix.get(row - 1).get(i - 1));
-				System.out.printf("(Mis)match score for cell %d,%d = %d, adding parent%n", row, i, matchScore);
+				//System.out.printf("(Mis)match score for cell %d,%d = %d, adding parent%n", row, i, matchScore);
 			}
 			
 			if (insertionScore == max) {
 				matrix.get(row).get(i).addInsertionParent(matrix.get(row - 1).get(i));
-				System.out.printf("Insertion score for cell %d,%d = %d, adding parent%n", row, i, insertionScore);
+				//System.out.printf("Insertion score for cell %d,%d = %d, adding parent%n", row, i, insertionScore);
 			}
 			
 			if (deletionScore == max) {
 				matrix.get(row).get(i).addDeletionParent(matrix.get(row).get(i-1));
-				System.out.printf("Deletion score for cell %d,%d = %d, adding parent%n", row, i, deletionScore);
+				//System.out.printf("Deletion score for cell %d,%d = %d, adding parent%n", row, i, deletionScore);
 			}
 		}
 	}
 
 	public void printMatrix() {
+		for (int i = 0; i < s.length(); i++) {
+			System.out.printf("  %c ", s.charAt(i));
+		}
+		System.out.println();
 		for (int i = 0; i < matrix.size(); i++) {
+			System.out.print(t.charAt(i) + " ");
 			for (int j = 0; j < matrix.get(i).size(); j++) {
 				String intVal =  new Integer(matrix.get(i).get(j).getScore()).toString();
 				System.out.print(intVal);
@@ -125,7 +130,7 @@ public class NeedlemanMatrix {
 			return;
 		}
 		if (w.getMatch()) {
-			w.setCellInfo("Match");
+			w.setCellInfo("(Mis)match");
 			depthFirstWunsch(w.getMatchParent());
 		}
 		if (w.getInsertion()) {
@@ -140,6 +145,7 @@ public class NeedlemanMatrix {
 	}
 	
 	private void printOptimalPath(ArrayList<WunschCell> path) {
+		
 		System.out.printf("%n%n-------Possible best alignment---------------%n");
 		for (int i = 1; i < optimalPath.size(); i++) {
 			System.out.printf("%s | ", path.get(i).getCellInfo());
@@ -148,9 +154,9 @@ public class NeedlemanMatrix {
 		System.out.printf("%nString S:  ");
 		for (int i = 1; i < path.size(); i++) {
 			switch (path.get(i).getCellInfo()) {
-			case "Match":
+			case "(Mis)match":
 			case "Deletion":
-				System.out.printf("%c ", s.charAt(sCounter));
+				System.out.printf("%c ", s.charAt(sCounter+1));
 				sCounter++;
 				break;
 			case "Insertion":
@@ -168,9 +174,9 @@ public class NeedlemanMatrix {
 		for (int i = 1; i < path.size(); i++) {
 			
 			switch (path.get(i).getCellInfo()) {
-			case "Match":
+			case "(Mis)match":
 			case "Insertion":
-				System.out.printf("%c ", t.charAt(tCounter));
+				System.out.printf("%c ", t.charAt(tCounter+1));
 				tCounter++;
 				break;
 			case "Deletion":
@@ -182,5 +188,7 @@ public class NeedlemanMatrix {
 				System.exit(1);
 			}
 		}
+		int score = path.get(path.size() - 1).getScore();
+		System.out.printf("%nScore: %d%n", score);
 	}
 }
